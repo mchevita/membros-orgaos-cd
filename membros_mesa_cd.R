@@ -10,17 +10,21 @@ library(httr)
 library(jsonlite)
 library(xlsx)
 
-txtURLbase = "https://dadosabertos.camara.leg.br/api/v2/orgaos/4/membros?dataInicio=1999-01-01&dataFim=2022-07-05&itens=100"
+txtURLbase = "https://dadosabertos.camara.leg.br/api/v2/orgaos/"
 
-carrega_membros_mesa <- function(txtURLbase) {
-
+carrega_membros <- function(txtURLbase, idOrgao=4) {
+  
   numPagina <- 1  
   dataMembros <- data.frame()
-
+  txtURL = paste(txtURLbase, idOrgao, 
+                 "/membros?dataInicio=1999-01-01&dataFim=2022-07-05&itens=100", 
+                 sep="")
+  
   repeat {
     # Obtém detalhes da API
-    txtURL = paste(txtURLbase, "&pagina=", as.character(numPagina), sep="")
-    get_membros <- GET(url = txtURL)
+    txtURL_p = paste(txtURL, "&pagina=", as.character(numPagina), sep="")
+    
+    get_membros <- GET(url = txtURL_p)
     
     # Obtém o status da chamada HTTP e sai do laço caso ela não exista
     status <- status_code(get_membros)
@@ -54,6 +58,17 @@ carrega_membros_mesa <- function(txtURLbase) {
   return(dataMembros)
 }
 
+carrega_membros_mesa <- function(txtURLbase) {
+  return(carrega_membros(txtURLbase, idOrgao=4))
+}
+
+carrega_membros_pcd <- function(txtURLbase) {
+  return(carrega_membros(txtURLbase, idOrgao=249))
+}
+
 # Executa carga e grava os dados em formato XLS (Excel)
 dataMembros <- carrega_membros_mesa(txtURLbase)
 write.xlsx(dataMembros, "membros_mesa_51a_56a.xlsx")
+
+#dataMembros <- carrega_membros_pcd(txtURLbase)
+#write.xlsx(dataMembros, "membros_pcd_51a_56a.xlsx")
